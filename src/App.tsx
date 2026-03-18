@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { 
   Terminal, FolderOpen, Code, Globe, Search, Bell, HelpCircle, 
   Settings, Command, Plus, X, SplitSquareHorizontal, ArrowLeft, ArrowRight, RotateCw, Lock, Puzzle, Star,
-  History, Users, Archive, Rocket, ChevronRight, ChevronDown, AlignLeft, CheckSquare, Box, Network, Monitor
+  History, Users, Archive, Rocket, ChevronRight, ChevronDown, AlignLeft, CheckSquare, Box, Network, Monitor, Sparkles
 } from 'lucide-react';
 import { Pane, PaneType, Task } from './types';
 
@@ -17,6 +17,7 @@ import PushView from './views/PushView';
 export default function App() {
   const [activeProject, setActiveProject] = useState('T3 Code');
   const [activeTab, setActiveTab] = useState('BUILD');
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   
   const [allPanes, setAllPanes] = useState<Record<string, Pane[]>>({
     'T3 Code': [
@@ -111,7 +112,26 @@ export default function App() {
         setTimeout(() => setTransitionStep(2), 2000);
         setTimeout(() => {
           setActiveTaskTransition(null);
-          setIsBuilding(true);
+          setActiveTab('BUILD');
+          
+          // Ensure there's a pane with title 'Claude Code'
+          setAllPanes(prev => {
+            const projectPanes = prev[activeProject] || [];
+            const hasClaudePane = projectPanes.some(p => p.title === 'Claude Code');
+            
+            if (!hasClaudePane) {
+              const newPane: Pane = {
+                id: Date.now().toString(),
+                type: 'terminal',
+                title: 'Claude Code'
+              };
+              return {
+                ...prev,
+                [activeProject]: [...projectPanes, newPane]
+              };
+            }
+            return prev;
+          });
         }, 3500);
       }
     }
@@ -228,6 +248,13 @@ export default function App() {
     const handleKeyUp = (e: KeyboardEvent) => {
       if (!e.metaKey && !e.ctrlKey) {
         setShowHotkeys(false);
+      }
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+        e.preventDefault();
+        setIsCommandPaletteOpen(true);
+      }
+      if (e.key === 'Escape') {
+        setIsCommandPaletteOpen(false);
       }
     };
 
@@ -693,6 +720,43 @@ export default function App() {
                 <p className={`text-sm font-medium ${transitionStep >= 2 ? 'text-slate-200' : 'text-slate-500'}`}>Start Claude instance</p>
                 <p className="text-xs text-slate-500 mt-1">Initializing agentic context</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {isCommandPaletteOpen && (
+        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[20vh] bg-[#0a1111]/80 backdrop-blur-sm" onClick={() => setIsCommandPaletteOpen(false)}>
+          <div 
+            className="w-full max-w-xl bg-[#0d1515] border border-[#1a3333] rounded-xl shadow-2xl overflow-hidden"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center px-4 py-3 border-b border-[#1a3333]">
+              <Search size={18} className="text-slate-500 mr-3" />
+              <input 
+                autoFocus
+                type="text" 
+                placeholder="Type a command or search..." 
+                className="flex-1 bg-transparent border-none outline-none text-slate-200 placeholder-slate-500 text-lg"
+              />
+              <kbd className="text-[10px] font-mono bg-[#102222] text-slate-500 px-2 py-1 rounded">ESC</kbd>
+            </div>
+            <div className="p-2">
+              <div className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest">Actions</div>
+              <button onClick={() => { startReview(); setIsCommandPaletteOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-[#25f4f4]/10 text-slate-300 hover:text-[#25f4f4] rounded-lg transition-colors text-left">
+                <Sparkles size={16} className="text-yellow-400" />
+                <span>Review Code with Codex</span>
+              </button>
+              <button onClick={() => { addPane('terminal'); setIsCommandPaletteOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-[#1a3333] text-slate-300 rounded-lg transition-colors text-left">
+                <Terminal size={16} />
+                <span>New Terminal</span>
+              </button>
+              <div className="px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-widest mt-2">Projects</div>
+              {['T3 Code', 'Sandbox', 'Open Code'].map(proj => (
+                <button key={proj} onClick={() => { setActiveProject(proj); setIsCommandPaletteOpen(false); }} className="w-full flex items-center gap-3 px-3 py-3 hover:bg-[#1a3333] text-slate-300 rounded-lg transition-colors text-left">
+                  <FolderOpen size={16} />
+                  <span>Switch to {proj}</span>
+                </button>
+              ))}
             </div>
           </div>
         </div>

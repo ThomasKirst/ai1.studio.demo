@@ -1,6 +1,150 @@
-import React from 'react';
-import { Terminal, Code, Globe, X, Plus, ArrowLeft, ArrowRight, RotateCw, Lock, Star, Puzzle, Rocket, Maximize2, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { Terminal, Code, Globe, X, Plus, ArrowLeft, ArrowRight, RotateCw, Lock, Star, Puzzle, Rocket, Maximize2, Minimize2, Sparkles, CheckSquare } from 'lucide-react';
 import { Pane, PaneType } from '../types';
+
+const LiveAgentStream = ({ activeProject }: { activeProject: string }) => {
+  const [step, setStep] = useState(0);
+
+  React.useEffect(() => {
+    const timers = [
+      setTimeout(() => setStep(1), 800),
+      setTimeout(() => setStep(2), 2000),
+      setTimeout(() => setStep(3), 3500),
+      setTimeout(() => setStep(4), 5000),
+      setTimeout(() => setStep(5), 7000),
+      setTimeout(() => setStep(6), 8500),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="font-mono text-xs text-slate-300">
+      <div className="text-slate-500 mb-2">Starting Codex CLI...</div>
+      
+      {step >= 1 && (
+        <div className="flex gap-2 mb-1">
+          <span className="text-[#25f4f4]">➜</span>
+          <span className="text-blue-400">~/{activeProject.toLowerCase().replace(' ', '-')}</span>
+          <span className="text-slate-100">codex review --branch current</span>
+        </div>
+      )}
+
+      {step >= 2 && (
+        <div className="text-emerald-400 mb-2">
+          Analyzing uncommitted changes and current branch...
+        </div>
+      )}
+
+      {step >= 3 && (
+        <div className="text-slate-300 mb-2">
+          - Found 3 modified files<br/>
+          - Running static analysis...
+        </div>
+      )}
+
+      {step >= 4 && (
+        <div className="text-yellow-400 mb-2 flex items-center gap-2">
+          <Sparkles size={12} />
+          <span>Agent is reviewing code structure...</span>
+        </div>
+      )}
+
+      {step >= 5 && (
+        <div className="text-slate-300 mb-4 border-l-2 border-yellow-400/50 pl-3 py-1 bg-yellow-400/5">
+          <span className="text-yellow-400 font-bold">Suggestion:</span> In <span className="text-blue-400">App.tsx</span>, consider extracting the command palette into a separate component to reduce file size and improve maintainability.
+          <br/><br/>
+          <span className="text-slate-500">Applying suggested refactor...</span>
+        </div>
+      )}
+
+      {step >= 6 && (
+        <div className="text-emerald-400 mb-4 flex items-center gap-2">
+          <CheckSquare size={12} />
+          <span>Refactor applied successfully. All tests passing.</span>
+        </div>
+      )}
+
+      <div className="flex gap-2 mt-4">
+        <span className="text-[#25f4f4]">➜</span>
+        {step < 6 ? (
+          <span className="w-2 h-4 bg-[#25f4f4] animate-pulse"></span>
+        ) : (
+          <span className="text-blue-400">~/{activeProject.toLowerCase().replace(' ', '-')}</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const ClaudeCodeStream = ({ activeProject }: { activeProject: string }) => {
+  const [step, setStep] = useState(0);
+
+  React.useEffect(() => {
+    const timers = [
+      setTimeout(() => setStep(1), 1000),
+      setTimeout(() => setStep(2), 2500),
+      setTimeout(() => setStep(3), 4500),
+      setTimeout(() => setStep(4), 7000),
+      setTimeout(() => setStep(5), 9000),
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, []);
+
+  return (
+    <div className="font-mono text-xs text-slate-300">
+      <div className="text-slate-500 mb-2">Starting Claude Code...</div>
+      
+      {step >= 1 && (
+        <div className="flex gap-2 mb-1">
+          <span className="text-[#25f4f4]">➜</span>
+          <span className="text-blue-400">~/{activeProject.toLowerCase().replace(' ', '-')}</span>
+          <span className="text-slate-100">claude start</span>
+        </div>
+      )}
+
+      {step >= 2 && (
+        <div className="text-emerald-400 mb-2 flex items-center gap-2">
+          <Sparkles size={12} />
+          <span>Reading the issue...</span>
+        </div>
+      )}
+
+      {step >= 3 && (
+        <div className="text-slate-300 mb-2">
+          - Extracting a screen shot...<br/>
+          - Analyzing UI components...
+        </div>
+      )}
+
+      {step >= 4 && (
+        <div className="text-yellow-400 mb-2 flex items-center gap-2">
+          <CheckSquare size={12} />
+          <span>Making an implementation plan...</span>
+        </div>
+      )}
+
+      {step >= 5 && (
+        <div className="text-slate-300 mb-4 border-l-2 border-yellow-400/50 pl-3 py-1 bg-yellow-400/5">
+          <span className="text-yellow-400 font-bold">Plan:</span> 
+          <br/>1. Update the layout grid
+          <br/>2. Refactor the navigation bar
+          <br/>3. Add responsive breakpoints
+          <br/><br/>
+          <span className="text-slate-500">Starting to implement...</span>
+        </div>
+      )}
+
+      <div className="flex gap-2 mt-4">
+        <span className="text-[#25f4f4]">➜</span>
+        {step < 5 ? (
+          <span className="w-2 h-4 bg-[#25f4f4] animate-pulse"></span>
+        ) : (
+          <span className="w-2 h-4 bg-[#25f4f4] animate-pulse"></span>
+        )}
+      </div>
+    </div>
+  );
+};
 
 interface BuildViewProps {
   panes: Pane[];
@@ -12,6 +156,17 @@ interface BuildViewProps {
 }
 
 export default function BuildView({ panes, activeProject, showHotkeys, canvasRef, addPane, removePane }: BuildViewProps) {
+  const [maximizedPaneId, setMaximizedPaneId] = useState<string | null>(null);
+
+  const toggleMaximize = (id: string) => {
+    if (maximizedPaneId === id) {
+      setMaximizedPaneId(null);
+    } else {
+      setMaximizedPaneId(id);
+      scrollToPane(id);
+    }
+  };
+
   const scrollToPane = (id: string) => {
     const el = document.getElementById(`pane-${id}`);
     if (el && canvasRef.current) {
@@ -27,15 +182,15 @@ export default function BuildView({ panes, activeProject, showHotkeys, canvasRef
       <div className="flex items-center justify-between px-4 py-2 bg-[#102222] border-b border-[#1a3333]">
         <div className="flex items-center gap-2">
           {pane.type === 'terminal' && (
-            pane.title === 'Codex Review' ? <Sparkles size={14} className="text-yellow-400" /> : <Terminal size={14} className="text-[#25f4f4]" />
+            pane.title === 'Codex Review' || pane.title === 'Claude Code' ? <Sparkles size={14} className="text-yellow-400" /> : <Terminal size={14} className="text-[#25f4f4]" />
           )}
           {pane.type === 'editor' && <Code size={14} className="text-blue-400" />}
           {pane.type === 'browser' && <Globe size={14} className="text-emerald-400" />}
           <span className="text-xs font-bold text-slate-300 tracking-wider">{pane.title}</span>
         </div>
         <div className="flex items-center gap-1">
-          <button onClick={() => scrollToPane(pane.id)} className="text-slate-500 hover:text-[#25f4f4] transition-colors p-1 rounded hover:bg-white/5" title="Focus Pane">
-            <Maximize2 size={14} />
+          <button onClick={() => toggleMaximize(pane.id)} className="text-slate-500 hover:text-[#25f4f4] transition-colors p-1 rounded hover:bg-white/5" title={maximizedPaneId === pane.id ? "Restore Pane" : "Maximize Pane"}>
+            {maximizedPaneId === pane.id ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
           </button>
           <button onClick={() => removePane(pane.id)} className="text-slate-500 hover:text-red-400 transition-colors p-1 rounded hover:bg-white/5" title="Close Pane">
             <X size={14} />
@@ -48,26 +203,9 @@ export default function BuildView({ panes, activeProject, showHotkeys, canvasRef
         {pane.type === 'terminal' && (
           <div className="h-full p-4 font-mono text-xs overflow-y-auto bg-[#050808] text-slate-300">
             {pane.title === 'Codex Review' ? (
-              <>
-                <div className="text-slate-500 mb-2">Starting Codex CLI...</div>
-                <div className="flex gap-2 mb-1">
-                  <span className="text-[#25f4f4]">➜</span>
-                  <span className="text-blue-400">~/{activeProject.toLowerCase().replace(' ', '-')}</span>
-                  <span className="text-slate-100">codex review --branch current</span>
-                </div>
-                <div className="text-emerald-400 mb-2">
-                  Analyzing uncommitted changes and current branch...
-                </div>
-                <div className="text-slate-300 mb-4">
-                  - Found 3 modified files<br/>
-                  - Running static analysis...<br/>
-                  - Checking against style guidelines...
-                </div>
-                <div className="flex gap-2">
-                  <span className="text-[#25f4f4]">➜</span>
-                  <span className="w-2 h-4 bg-[#25f4f4] animate-pulse"></span>
-                </div>
-              </>
+              <LiveAgentStream activeProject={activeProject} />
+            ) : pane.title === 'Claude Code' ? (
+              <ClaudeCodeStream activeProject={activeProject} />
             ) : (
               <>
                 <div className="text-slate-500 mb-2">Last login: Wed Oct 25 14:22:11 on ttys001</div>
@@ -212,31 +350,66 @@ export default function BuildView({ panes, activeProject, showHotkeys, canvasRef
     <div 
       ref={canvasRef}
       className="flex-1 overflow-x-auto overflow-y-hidden bg-[#050808] p-6 flex gap-6 custom-scrollbar scroll-smooth relative"
-      style={{ scrollSnapType: 'x mandatory' }}
+      style={{ 
+        scrollSnapType: 'x mandatory'
+      }}
     >
-      {panes.map((pane) => (
-        <div 
-          id={`pane-${pane.id}`}
-          key={pane.id} 
-          className={`flex-shrink-0 w-[800px] h-full flex ${pane.splitMode === 'vertical' ? 'flex-col gap-4 bg-transparent border-none shadow-none' : `flex-col bg-[#0d1515] border ${pane.title === 'Codex Review' ? 'border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-[#1a3333]'} rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-[#25f4f4]/50 hover:shadow-[0_0_30px_rgba(37,244,244,0.1)]`}`}
-          style={{ scrollSnapAlign: 'center' }}
-        >
-          {pane.splitMode === 'vertical' && pane.children ? (
-            pane.children.map(child => (
-              <div key={child.id} className="flex-1 flex flex-col bg-[#0d1515] border border-[#1a3333] rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-[#25f4f4]/50 hover:shadow-[0_0_30px_rgba(37,244,244,0.1)] relative">
-                {renderPaneContent(child)}
-              </div>
-            ))
-          ) : (
-            renderPaneContent(pane)
-          )}
-        </div>
-      ))}
+      {panes.map((pane) => {
+        if (pane.splitMode === 'vertical' && pane.children) {
+          return (
+            <div 
+              id={`pane-${pane.id}`}
+              key={pane.id} 
+              className="flex-shrink-0 w-[800px] h-full flex flex-col gap-4 bg-transparent border-none shadow-none"
+              style={{ scrollSnapAlign: 'center' }}
+            >
+              {pane.children.map(child => {
+                const isMaximized = maximizedPaneId === child.id;
+                const maximizedClasses = "fixed top-[144px] left-[280px] right-6 bottom-6 z-50 shadow-[0_0_100px_rgba(0,0,0,0.8)] border-[#25f4f4]";
+                const normalClasses = "flex-1 relative";
+                const borderClass = child.title === 'Codex Review' ? 'border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-[#1a3333]';
+                
+                return (
+                  <div 
+                    key={child.id} 
+                    className={`flex flex-col bg-[#0d1515] border rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-[#25f4f4]/50 hover:shadow-[0_0_30px_rgba(37,244,244,0.1)] ${isMaximized ? maximizedClasses : normalClasses} ${!isMaximized ? borderClass : ''}`}
+                  >
+                    {renderPaneContent(child)}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
+
+        const isMaximized = maximizedPaneId === pane.id;
+        const maximizedClasses = "fixed top-[144px] left-[280px] right-6 bottom-6 z-50 shadow-[0_0_100px_rgba(0,0,0,0.8)] border-[#25f4f4]";
+        const normalClasses = "flex-shrink-0 w-[800px] h-full relative";
+        const borderClass = pane.title === 'Codex Review' ? 'border-yellow-400/50 shadow-[0_0_15px_rgba(250,204,21,0.1)]' : 'border-[#1a3333]';
+
+        return (
+          <div 
+            id={`pane-${pane.id}`}
+            key={pane.id} 
+            className={`flex flex-col bg-[#0d1515] border rounded-xl overflow-hidden shadow-2xl transition-all duration-300 hover:border-[#25f4f4]/50 hover:shadow-[0_0_30px_rgba(37,244,244,0.1)] ${isMaximized ? maximizedClasses : normalClasses} ${!isMaximized ? borderClass : ''}`}
+            style={!isMaximized ? { scrollSnapAlign: 'center' } : {}}
+          >
+            <div className="flex-1 flex flex-col">
+              {renderPaneContent(pane)}
+            </div>
+          </div>
+        );
+      })}
       
       {/* Add Pane Placeholder */}
-      <div className={`flex-shrink-0 w-[300px] h-full flex items-center justify-center border-2 border-dashed border-[#1a3333] rounded-xl hover:border-[#25f4f4]/50 hover:bg-[#25f4f4]/5 transition-all cursor-pointer group ${showHotkeys ? 'border-[#25f4f4] bg-[#25f4f4]/5' : ''}`} onClick={() => addPane('terminal')}>
+      <div 
+        className={`flex-shrink-0 w-[300px] h-full flex items-center justify-center border-2 border-dashed border-[#1a3333] rounded-xl hover:border-[#25f4f4]/50 hover:bg-[#25f4f4]/5 transition-all cursor-pointer group ${showHotkeys ? 'border-[#25f4f4] bg-[#25f4f4]/5' : ''}`} 
+        onClick={() => addPane('terminal')}
+      >
         <div className={`flex flex-col items-center gap-3 text-slate-500 ${showHotkeys ? 'text-[#25f4f4]' : 'group-hover:text-[#25f4f4]'}`}>
-          <div className={`w-12 h-12 rounded-full bg-[#102222] flex items-center justify-center transition-colors ${showHotkeys ? 'bg-[#25f4f4]/20' : 'group-hover:bg-[#25f4f4]/20'}`}>
+          <div 
+            className={`w-12 h-12 rounded-full bg-[#102222] flex items-center justify-center transition-colors ${showHotkeys ? 'bg-[#25f4f4]/20' : 'group-hover:bg-[#25f4f4]/20'}`}
+          >
             <Plus size={24} />
           </div>
           <span className="font-bold tracking-widest uppercase text-xs">Add Pane</span>

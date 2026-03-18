@@ -1,16 +1,25 @@
 import React, { useState } from 'react';
-import { Activity, Server, Database, Square, RotateCw, Terminal, Code, Box, Eye, EyeOff, Edit2 } from 'lucide-react';
+import { Activity, Server, Database, Square, RotateCw, Terminal, Code, Box, Eye, EyeOff, Edit2, X } from 'lucide-react';
 
 export default function RunView() {
   const [showDbUrl, setShowDbUrl] = useState(false);
   const [showApiKey, setShowApiKey] = useState(false);
+  const [showTerminal, setShowTerminal] = useState(false);
   return (
     <div className="flex-1 overflow-hidden bg-[#050808] flex">
       {/* Main Content */}
       <div className="flex-1 overflow-auto p-6 text-slate-300 flex flex-col">
-        <h2 className="text-xl font-bold text-slate-100 mb-6 flex items-center gap-2">
-          <Activity className="text-[#25f4f4]" /> Running Services
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <Activity className="text-[#25f4f4]" /> Running Services
+          </h2>
+          <button 
+            onClick={() => setShowTerminal(!showTerminal)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded text-xs font-medium transition-colors ${showTerminal ? 'bg-[#25f4f4]/10 border border-[#25f4f4]/30 text-[#25f4f4] hover:bg-[#25f4f4]/20' : 'bg-[#102222] border border-[#1a3333] hover:bg-[#1a3333] text-slate-300 hover:text-white'}`}
+          >
+            <Terminal size={14} /> Open Worktree in CLI
+          </button>
+        </div>
         <div className="grid grid-cols-3 gap-6">
           {['Frontend (Vite)', 'Backend (Node)', 'Database (Postgres)'].map((service, i) => (
             <div key={service} className="bg-[#0d1515] border border-[#1a3333] rounded-xl p-4">
@@ -39,13 +48,38 @@ export default function RunView() {
             </div>
           ))}
         </div>
-        <div className="mt-6 bg-[#0d1515] border border-[#1a3333] rounded-xl p-4 flex-1 flex flex-col min-h-[300px]">
-          <h3 className="text-sm font-bold mb-4 flex items-center gap-2"><Terminal size={14} /> Aggregated Logs</h3>
-          <div className="flex-1 bg-[#050808] rounded p-3 font-mono text-xs overflow-y-auto space-y-1">
-            <div className="text-slate-500">[14:02:01] <span className="text-blue-400">frontend</span> | VITE v5.0.0 ready in 240 ms</div>
-            <div className="text-slate-500">[14:02:05] <span className="text-emerald-400">backend</span>  | Server listening on port 3001</div>
-            <div className="text-slate-500">[14:05:22] <span className="text-purple-400">database</span> | Connection established from 127.0.0.1</div>
+        <div className="mt-6 flex-1 flex flex-col gap-6 min-h-0">
+          <div className="bg-[#0d1515] border border-[#1a3333] rounded-xl p-4 flex-1 flex flex-col min-h-[150px]">
+            <h3 className="text-sm font-bold mb-4 flex items-center gap-2"><Terminal size={14} /> Aggregated Logs</h3>
+            <div className="flex-1 bg-[#050808] rounded p-3 font-mono text-xs overflow-y-auto space-y-1">
+              <div className="text-slate-500">[14:02:01] <span className="text-blue-400">frontend</span> | VITE v5.0.0 ready in 240 ms</div>
+              <div className="text-slate-500">[14:02:05] <span className="text-emerald-400">backend</span>  | Server listening on port 3001</div>
+              <div className="text-slate-500">[14:05:22] <span className="text-purple-400">database</span> | Connection established from 127.0.0.1</div>
+            </div>
           </div>
+          
+          {showTerminal && (
+            <div className="bg-[#0d1515] border border-[#1a3333] rounded-xl p-4 flex-1 flex flex-col min-h-[200px] animate-in slide-in-from-bottom-4 duration-300">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-sm font-bold flex items-center gap-2"><Terminal size={14} /> Worktree CLI</h3>
+                <button onClick={() => setShowTerminal(false)} className="text-slate-500 hover:text-red-400 transition-colors p-1 rounded hover:bg-white/5">
+                  <X size={14} />
+                </button>
+              </div>
+              <div className="flex-1 bg-[#050808] rounded p-3 font-mono text-xs overflow-y-auto text-slate-300">
+                <div className="text-slate-500 mb-2">Last login: Wed Oct 25 14:22:11 on ttys001</div>
+                <div className="flex gap-2 mb-1">
+                  <span className="text-[#25f4f4]">➜</span>
+                  <span className="text-blue-400">~/projects/t3-code</span>
+                  <span className="text-slate-400">git:(</span><span className="text-red-400">feature/task-101</span><span className="text-slate-400">)</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="text-[#25f4f4]">➜</span>
+                  <span className="w-2 h-4 bg-[#25f4f4] animate-pulse"></span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
